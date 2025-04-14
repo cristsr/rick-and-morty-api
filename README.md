@@ -40,8 +40,7 @@ Main features:
 │   ├── migrations/       # Sequelize migrations
 │   ├── models/           # Sequelize models
 │   ├── seeders/          # Initial data seeds
-│   ├── services/         # Services (Redis, CRON)
-│   ├── utils/            # Utilities
+│   ├── services/         # Services (Redis, CRON, Data Fetcher)
 │   ├── __tests__/        # Unit tests
 │   ├── app.ts            # Application configuration
 │   └── index.ts          # Application entry point
