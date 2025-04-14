@@ -1,120 +1,119 @@
- 
 # Rick and Morty Character API
 
-Una API para buscar personajes de Rick and Morty implementando GraphQL, caché con Redis y persistencia en PostgreSQL.
+An API to search for Rick and Morty characters implementing GraphQL, Redis cache, and PostgreSQL persistence.
 
-## Índice
-- [Descripción](#descripción)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Uso](#uso)
-- [Estructura de la Base de Datos](#estructura-de-la-base-de-datos)
+## Index
+- [Description](#description)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Database Structure](#database-structure)
 - [Endpoints](#endpoints)
-- [Ejemplos de Consultas](#ejemplos-de-consultas)
-- [Pruebas](#pruebas)
+- [Query Examples](#query-examples)
+- [Tests](#tests)
 
-## Descripción
+## Description
 
-Esta API permite realizar búsquedas de personajes de Rick and Morty, con capacidad de filtrado por nombre, estado, especie, género y origen. 
+This API allows you to search for Rick and Morty characters, with filtering capabilities by name, status, species, gender, and origin.
 
-Características principales:
-- API GraphQL implementada con Apollo Server y Express
-- Base de datos PostgreSQL con ORM Sequelize
-- Caché con Redis para mejorar el rendimiento
-- Tarea CRON para actualización automática de datos
-- Middleware de logging para registrar información de las peticiones
-- Decorador para medir el tiempo de ejecución de consultas
-- Pruebas unitarias con Jest
-- Documentación con Swagger
+Main features:
+- GraphQL API implemented with Apollo Server and Express
+- PostgreSQL database with Sequelize ORM
+- Redis cache to improve performance
+- CRON task for automatic data updates
+- Logging middleware to record request information
+- Decorator to measure query execution time
+- Unit tests with Jest
+- Documentation with Swagger
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 .
 ├── src/
-│   ├── config/           # Configuraciones (base de datos, swagger)
-│   ├── db/               # Conexión a la base de datos
-│   ├── decorators/       # Decoradores personalizados
-│   ├── graphql/          # Esquemas y resolvers de GraphQL
-│   ├── middleware/       # Middlewares de Express
-│   ├── migrations/       # Migraciones de Sequelize
-│   ├── models/           # Modelos de Sequelize
-│   ├── seeders/          # Semillas de datos iniciales
-│   ├── services/         # Servicios (Redis, CRON)
-│   ├── utils/            # Utilidades
-│   ├── __tests__/        # Pruebas unitarias
-│   ├── app.ts            # Configuración de la aplicación
-│   └── index.ts          # Punto de entrada de la aplicación
-├── .env.example          # Ejemplo de variables de entorno
-├── .eslintrc.js          # Configuración de ESLint
-├── .sequelizerc          # Configuración de Sequelize CLI
-├── docker-compose.yml    # Configuración de Docker Compose
-├── Dockerfile            # Configuración de Docker
-├── jest.config.js        # Configuración de Jest
-├── package.json          # Dependencias del proyecto
-├── tsconfig.json         # Configuración de TypeScript
-└── README.md             # Documentación del proyecto
+│   ├── config/           # Configurations (database, swagger)
+│   ├── db/               # Database connection
+│   ├── decorators/       # Custom decorators
+│   ├── graphql/          # GraphQL schemas and resolvers
+│   ├── middleware/       # Express middlewares
+│   ├── migrations/       # Sequelize migrations
+│   ├── models/           # Sequelize models
+│   ├── seeders/          # Initial data seeds
+│   ├── services/         # Services (Redis, CRON)
+│   ├── utils/            # Utilities
+│   ├── __tests__/        # Unit tests
+│   ├── app.ts            # Application configuration
+│   └── index.ts          # Application entry point
+├── .env.example          # Environment variables example
+├── .eslintrc.js          # ESLint configuration
+├── .sequelizerc          # Sequelize CLI configuration
+├── docker-compose.yml    # Docker Compose configuration
+├── Dockerfile            # Docker configuration
+├── jest.config.js        # Jest configuration
+├── package.json          # Project dependencies
+├── tsconfig.json         # TypeScript configuration
+└── README.md             # Project documentation
 ```
 
-## Requisitos
+## Requirements
 
 - Node.js >= 14.x
-- Docker y Docker Compose
+- Docker and Docker Compose
 - Git
 
-## Instalación
+## Installation
 
-1. Clonar el repositorio:
+1. Clone the repository:
    ```bash
-   git clone https://github.com/tu-usuario/rick-and-morty-api.git
+   git clone https://github.com/your-username/rick-and-morty-api.git
    cd rick-and-morty-api
    ```
 
-2. Crear archivo de variables de entorno:
+2. Create environment variables file:
    ```bash
    cp .env.example .env
    ```
 
-3. Iniciar los contenedores con Docker Compose:
+3. Start containers with Docker Compose:
    ```bash
    docker-compose up -d
    ```
 
-4. Ejecutar las migraciones y seeders:
+4. Run migrations and seeders:
    ```bash
    docker-compose exec app npm run migrate
    docker-compose exec app npm run seed
    ```
 
-## Uso
+## Usage
 
-Una vez que la aplicación esté en ejecución, puedes acceder a:
+Once the application is running, you can access:
 
 - GraphQL Playground: http://localhost:4000/graphql
-- Documentación de la API: http://localhost:4000/api-docs
+- API Documentation: http://localhost:4000/api-docs
 - Health Check: http://localhost:4000/health
 
-## Estructura de la Base de Datos
+## Database Structure
 
-La aplicación utiliza dos tablas principales:
+The application uses two main tables:
 
-- **characters**: Almacena información sobre los personajes de Rick and Morty.
-- **locations**: Almacena información sobre las ubicaciones (origen y ubicación actual de los personajes).
+- **characters**: Stores information about Rick and Morty characters.
+- **locations**: Stores information about locations (origin and current location of characters).
 
-![Diagrama ERD](./erd-diagram.png)
+![ERD Diagram](./erd-diagram.png)
 
 ## Endpoints
 
 ### GraphQL
 
 - **URL**: `/graphql`
-- **Método**: POST
-- **Descripción**: Endpoint principal para realizar consultas GraphQL.
+- **Method**: POST
+- **Description**: Main endpoint for GraphQL queries.
 
-## Ejemplos de Consultas
+## Query Examples
 
-### Obtener un personaje por ID
+### Get a character by ID
 
 ```graphql
 query {
@@ -139,7 +138,7 @@ query {
 }
 ```
 
-### Buscar personajes con filtros
+### Search characters with filters
 
 ```graphql
 query {
@@ -172,14 +171,14 @@ query {
 }
 ```
 
-## Pruebas
+## Tests
 
-Para ejecutar las pruebas unitarias:
+To run unit tests:
 
 ```bash
 docker-compose exec app npm test
 ```
 
-## Licencia
+## License
 
-Este proyecto está licenciado bajo la Licencia ISC.
+This project is licensed under the ISC License.

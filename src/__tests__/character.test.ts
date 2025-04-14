@@ -1,31 +1,38 @@
- 
 import { ApolloServer } from 'apollo-server-express';
-import typeDefs from '../graphql/schema';
-import resolvers from '../graphql/resolvers';
-import { Character, Location } from '../models';
-import { getCache, setCache } from '../services/redis';
+import { 
+  characterModelMock,
+  redisServiceMock,
+  rickAndMortyApiMock,
+  mockDbCharacters, 
+  mockCachedCharacter,
+  GET_CHARACTERS_QUERY,
+  GET_CHARACTER_QUERY,
+  GET_CHARACTER_BASIC_QUERY,
+  testVariables,
+  expectedResults
+} from './__mocks__/characterMocks';
 
-// Mock las dependencias
+// Mock other modules antes del import de resolvers
 jest.mock('../models', () => ({
-  Character: {
-    findOne: jest.fn(),
-    findAll: jest.fn(),
-    count: jest.fn(),
-  },
+  Character: characterModelMock,
   Location: {},
 }));
 
 jest.mock('../services/redis', () => ({
-  getCache: jest.fn(),
-  setCache: jest.fn(),
+  getCache: redisServiceMock.getCache,
+  setCache: redisServiceMock.setCache,
 }));
 
-jest.mock('../utils/rickAndMortyApi', () => ({
-  getCharacterById: jest.fn(),
-  getCharacters: jest.fn(),
+jest.mock('../services/rickAndMortyApi', () => ({
+  getCharacterById: rickAndMortyApiMock.getCharacterById,
+  getCharacters: rickAndMortyApiMock.getCharacters,
 }));
 
-// Configurar servidor Apollo para pruebas
+// Importar typeDefs y resolvers después de configurar los mocks
+import typeDefs from '../graphql/schema';
+import resolvers from '../graphql/resolvers';
+
+// Configure Apollo server for testing
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -38,238 +45,84 @@ describe('Character GraphQL Queries', () => {
 
   describe('characters query', () => {
     it('should return characters with filters', async () => {
-      // Mock que getCache devuelve null (no está en caché)
-      (getCache as jest.Mock).mockResolvedValue(null);
+      // Mock that getCache returns null (not in cache)
+      redisServiceMock.getCache.mockResolvedValue(null);
 
-      // Mock de datos de la base de datos
-      const totalCount = 2;
-      (Character.count as jest.Mock).mockResolvedValue(totalCount);
+      // Mock database data
+      const totalCount = 5;
+      characterModelMock.count.mockResolvedValue(totalCount);
 
-      const dbCharacters = [
-        {
-          id: 1,
-          api_id: 1,
-          name: 'Rick Sanchez',
-          status: 'Alive',
-          species: 'Human',
-          type: '',
-          gender: 'Male',
-          image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
-          created_at: new Date('2017-11-04T18:48:46.250Z'),
-          origin: {
-            id: 1,
-            api_id: 1,
-            name: 'Earth',
-            type: 'Planet',
-            dimension: 'C-137'
-          },
-          location: {
-            id: 3,
-            api_id: 3,
-            name: 'Citadel of Ricks',
-            type: 'Space station',
-            dimension: 'unknown'
-          }
-        },
-        {
-          id: 2,
-          api_id: 2,
-          name: 'Morty Smith',
-          status: 'Alive',
-          species: 'Human',
-          type: '',
-          gender: 'Male',
-          image: 'https://rickandmortyapi.com/api/character/avatar/2.jpeg',
-          created_at: new Date('2017-11-04T18:50:21.651Z'),
-          origin: {
-            id: 1,
-            api_id: 1,
-            name: 'Earth',
-            type: 'Planet',
-            dimension: 'C-137'
-          },
-          location: {
-            id: 3,
-            api_id: 3,
-            name: 'Citadel of Ricks',
-            type: 'Space station',
-            dimension: 'unknown'
-          }
-        }
-      ];
-
-      // Mock que findAll devuelve los personajes de la base de datos
-      (Character.findAll as jest.Mock).mockResolvedValue(dbCharacters);
-
-      // Ejecutar query
+      // Mock that findAll returns characters from the database
+      characterModelMock.findAll.mockResolvedValue(mockDbCharacters);
+      
+      // Execute query
       const result = await server.executeOperation({
-        query: `
-          query GetCharacters($page: Int, $filter: CharacterFilter) {
-            characters(page: $page, filter: $filter) {
-              info {
-                count
-                pages
-                next
-                prev
-              }
-              results {
-                id
-                name
-                status
-                species
-                gender
-              }
-            }
-          }`,
-        variables: { 
-          page: 1, 
-          filter: { 
-            status: "Alive",
-            species: "Human"
-          } 
-        },
+        query: GET_CHARACTERS_QUERY,
+        variables: testVariables.characters,
       });
 
-      // Verificar resultado
+      // Verificar que el resultado no tiene errores
       expect(result.errors).toBeUndefined();
-      expect(result.data?.characters.info).toEqual({
-        count: 2,
-        pages: 1,
-        next: null,
-        prev: null
-      });
-      expect(result.data?.characters.results).toHaveLength(2);
-      expect(result.data?.characters.results[0]).toEqual({
-        id: '1',
-        name: 'Rick Sanchez',
-        status: 'Alive',
-        species: 'Human',
-        gender: 'Male'
-      });
+      
+      // Verificar que la información de paginación coincide con la esperada
+      expect(result.data?.characters.info).toEqual(expectedResults.charactersInfo);
+      
+      // Verificar que devuelve la cantidad correcta de resultados
+      // mockDbCharacters tiene 2 elementos, así que esperamos 2 resultados
+      expect(result.data?.characters.results).toHaveLength(mockDbCharacters.length);
+      
+      // Verificar que el primer resultado coincide con el esperado
+      expect(result.data?.characters.results[0]).toEqual(expectedResults.characterFromDB);
 
-      // Verificar que se consultó la base de datos
-      expect(getCache).toHaveBeenCalled();
-      expect(Character.count).toHaveBeenCalled();
-      expect(Character.findAll).toHaveBeenCalled();
-      expect(setCache).toHaveBeenCalled();
+      // Verificar que las funciones mock fueron llamadas
+      expect(redisServiceMock.getCache).toHaveBeenCalled();
+      expect(characterModelMock.count).toHaveBeenCalled();
+      expect(characterModelMock.findAll).toHaveBeenCalled();
+      expect(redisServiceMock.setCache).toHaveBeenCalled();
     });
   });
-});
+
   describe('character query', () => {
     it('should return a character by ID from cache', async () => {
-      // Setup mock data
-      const cachedCharacter = {
-        id: '1',
-        name: 'Rick Sanchez',
-        status: 'Alive',
-        species: 'Human',
-        type: '',
-        gender: 'Male',
-        origin: { id: '1', name: 'Earth', type: 'Planet', dimension: 'C-137' },
-        location: { id: '3', name: 'Citadel of Ricks', type: 'Space station', dimension: 'unknown' },
-        image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
-        created: '2017-11-04T18:48:46.250Z',
-      };
+      // Mock that getCache returns the cached character
+      redisServiceMock.getCache.mockResolvedValue(mockCachedCharacter);
 
-      // Mock que getCache devuelve el personaje cacheado
-      (getCache as jest.Mock).mockResolvedValue(cachedCharacter);
-
-      // Ejecutar query
+      // Execute query
       const result = await server.executeOperation({
-        query: `
-          query GetCharacter($id: ID!) {
-            character(id: $id) {
-              id
-              name
-              status
-              species
-              gender
-              origin {
-                name
-              }
-            }
-          }`,
-        variables: { id: '1' },
+        query: GET_CHARACTER_QUERY,
+        variables: testVariables.character,
       });
 
-      // Verificar resultado
+      // Verify result
       expect(result.errors).toBeUndefined();
-      expect(result.data?.character).toEqual({
-        id: '1',
-        name: 'Rick Sanchez',
-        status: 'Alive',
-        species: 'Human',
-        gender: 'Male',
-        origin: { name: 'Earth' }
-      });
+      expect(result.data?.character).toEqual(expectedResults.characterFromCache);
 
-      // Verificar que se consultó la caché
-      expect(getCache).toHaveBeenCalledWith('character:1');
-      expect(Character.findOne).not.toHaveBeenCalled();
+      // Verify that the cache was queried
+      expect(redisServiceMock.getCache).toHaveBeenCalledWith('character:1');
+      expect(characterModelMock.findOne).not.toHaveBeenCalled();
     });
 
     it('should return a character by ID from database when not in cache', async () => {
-      // Mock que getCache devuelve null (no está en caché)
-      (getCache as jest.Mock).mockResolvedValue(null);
+      // Mock that getCache returns null (not in cache)
+      redisServiceMock.getCache.mockResolvedValue(null);
 
-      // Mock de datos de la base de datos
-      const dbCharacter = {
-        id: 1,
-        api_id: 1,
-        name: 'Rick Sanchez',
-        status: 'Alive',
-        species: 'Human',
-        type: '',
-        gender: 'Male',
-        image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
-        created_at: new Date('2017-11-04T18:48:46.250Z'),
-        origin: {
-          id: 1,
-          api_id: 1,
-          name: 'Earth',
-          type: 'Planet',
-          dimension: 'C-137'
-        },
-        location: {
-          id: 3,
-          api_id: 3,
-          name: 'Citadel of Ricks',
-          type: 'Space station',
-          dimension: 'unknown'
-        }
-      };
+      // Mock that findOne returns the character from the database
+      characterModelMock.findOne.mockResolvedValue(mockDbCharacters[0]);
 
-      // Mock que findOne devuelve el personaje de la base de datos
-      (Character.findOne as jest.Mock).mockResolvedValue(dbCharacter);
-
-      // Ejecutar query
+      // Execute query
       const result = await server.executeOperation({
-        query: `
-          query GetCharacter($id: ID!) {
-            character(id: $id) {
-              id
-              name
-              status
-              species
-              gender
-            }
-          }`,
-        variables: { id: '1' },
+        query: GET_CHARACTER_BASIC_QUERY,
+        variables: testVariables.character,
       });
 
-      // Verificar resultado
+      // Verify result
       expect(result.errors).toBeUndefined();
-      expect(result.data?.character).toEqual({
-        id: '1',
-        name: 'Rick Sanchez',
-        status: 'Alive',
-        species: 'Human',
-        gender: 'Male',
-      });
+      expect(result.data?.character).toEqual(expectedResults.characterFromDB);
 
-      // Verificar que se consultó la base de datos
-      expect(getCache).toHaveBeenCalledWith('character:1');
-      expect(Character.findOne).toHaveBeenCalled();
-      expect(setCache).toHaveBeenCalled();
+      // Verify that the database was queried
+      expect(redisServiceMock.getCache).toHaveBeenCalledWith('character:1');
+      expect(characterModelMock.findOne).toHaveBeenCalled();
+      expect(redisServiceMock.setCache).toHaveBeenCalled();
     });
   });
+}); 

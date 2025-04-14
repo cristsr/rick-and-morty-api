@@ -16,13 +16,13 @@ export interface LocationInput extends Optional<LocationAttributes, 'id'> {}
 export interface LocationOutput extends Required<LocationAttributes> {}
 
 class Location extends Model<LocationAttributes, LocationInput> implements LocationAttributes {
-  public id!: number;
-  public name!: string;
-  public type!: string;
-  public dimension!: string;
-  public api_id!: number;
-  public readonly created_at!: Date;
-  public readonly updated_at!: Date;
+  id!: number;
+  name!: string;
+  type!: string;
+  dimension!: string;
+  api_id!: number;
+  readonly created_at!: Date;
+  readonly updated_at!: Date;
 }
 
 Location.init(

@@ -1,18 +1,17 @@
- 
 import { Op } from 'sequelize';
 import { Character, Location } from '../models';
 import { getCache, setCache } from '../services/redis';
 import { measureExecutionTime } from '../decorators/performance';
-import { getCharacterById, getCharacters } from '../utils/rickAndMortyApi';
+import { getCharacterById, getCharacters } from '../services/rickAndMortyApi';
 
 class CharacterResolver {
   /**
-   * Obtiene un personaje por ID
+   * Gets a character by ID
    */
   @measureExecutionTime()
   async getCharacterById(id: string): Promise<any> {
     try {
-      // Verificar si existe en caché
+      // Check if exists in cache
       const cacheKey = `character:${id}`;
       const cachedCharacter = await getCache(cacheKey);
       
@@ -21,7 +20,7 @@ class CharacterResolver {
         return cachedCharacter;
       }
       
-      // Buscar en la base de datos
+      // Search in the database
       const character = await Character.findOne({
         where: { api_id: parseInt(id, 10) },
         include: [
@@ -31,23 +30,23 @@ class CharacterResolver {
       });
       
       if (character) {
-        // Formatear el resultado para que coincida con el esquema GraphQL
+        // Format the result to match the GraphQL schema
         const formattedCharacter = this.formatCharacter(character);
         
-        // Guardar en caché
-        await setCache(cacheKey, formattedCharacter, 3600); // 1 hora TTL
+        // Save in cache
+        await setCache(cacheKey, formattedCharacter, 3600); // 1 hour TTL
         
         return formattedCharacter;
       }
       
-      // Si no está en la base de datos, obtener de la API externa
+      // If not in the database, get from external API
       const apiCharacter = await getCharacterById(id);
       
       if (apiCharacter) {
-        // Guardar en caché
-        await setCache(cacheKey, apiCharacter, 3600); // 1 hora TTL
+        // Save in cache
+        await setCache(cacheKey, apiCharacter, 3600); // 1 hour TTL
         
-        // También podríamos guardar en la base de datos aquí si es necesario
+        // We could also save to the database here if needed
         
         return apiCharacter;
       }
@@ -60,23 +59,23 @@ class CharacterResolver {
   }
   
   /**
-   * Obtiene personajes con filtros opcionales
+   * Gets characters with optional filters
    */
   @measureExecutionTime()
   async getCharacters(page: number = 1, filter: any = {}): Promise<any> {
     try {
-      // Crear clave de caché basada en parámetros
+      // Create cache key based on parameters
       const filterKey = JSON.stringify(filter);
       const cacheKey = `characters:page=${page}:filter=${filterKey}`;
       
-      // Verificar si existe en caché
+      // Check if exists in cache
       const cachedResult = await getCache(cacheKey);
       if (cachedResult) {
         console.log(`Characters query found in cache: ${cacheKey}`);
         return cachedResult;
       }
       
-      // Construir las condiciones de filtro para Sequelize
+      // Build filter conditions for Sequelize
       const whereConditions: any = {};
       
       if (filter.name) {
@@ -99,7 +98,7 @@ class CharacterResolver {
         whereConditions.gender = filter.gender;
       }
       
-      // El filtro de origin requiere un join con la tabla de locations
+      // Origin filter requires a join with the locations table
       let originFilter = {};
       if (filter.origin) {
         originFilter = {
@@ -116,11 +115,11 @@ class CharacterResolver {
         };
       }
       
-      // Calcular offset para paginación
-      const limit = 20; // Número de resultados por página
+      // Calculate offset for pagination
+      const limit = 20; // Number of results per page
       const offset = (page - 1) * limit;
       
-      // Contar total de resultados para info
+      // Count total results for info
       const totalCount = await Character.count({
         where: whereConditions,
         include: filter.origin ? [originFilter] : []
@@ -137,12 +136,12 @@ class CharacterResolver {
         offset
       });
       
-      // Calcular información de paginación
+      // Calculate pagination information
       const totalPages = Math.ceil(totalCount / limit);
       const nextPage = page < totalPages ? page + 1 : null;
       const prevPage = page > 1 ? page - 1 : null;
       
-      // Formatear resultados según el esquema GraphQL
+      // Format results according to GraphQL schema
       const formattedCharacters = characters.map(this.formatCharacter);
       
       const result = {
@@ -155,14 +154,14 @@ class CharacterResolver {
         results: formattedCharacters
       };
       
-      // Guardar en caché
-      await setCache(cacheKey, result, 3600); // 1 hora TTL
+      // Save in cache
+      await setCache(cacheKey, result, 3600); // 1 hour TTL
       
       return result;
     } catch (error) {
       console.error('Error fetching characters:', error);
       
-      // Si falla la base de datos, intentar con la API externa
+      // If database fails, try with external API
       try {
         const apiResult = await getCharacters(page, filter);
         return apiResult;
@@ -174,7 +173,7 @@ class CharacterResolver {
   }
   
   /**
-   * Formatea un objeto Character de Sequelize al formato esperado por GraphQL
+   * Formats a Sequelize Character object to the format expected by GraphQL
    */
   private formatCharacter(character: any): any {
     return {
@@ -182,30 +181,30 @@ class CharacterResolver {
       name: character.name,
       status: character.status,
       species: character.species,
-      type: character.type || '',
+      type: character.type ?? '',
       gender: character.gender,
       origin: character.origin ? {
-        id: character.origin.api_id ? character.origin.api_id.toString() : null,
-        name: character.origin.name,
-        type: character.origin.type,
-        dimension: character.origin.dimension
+        id: character.origin?.api_id?.toString() ?? null,
+        name: character.origin?.name,
+        type: character.origin?.type,
+        dimension: character.origin?.dimension
       } : null,
       location: character.location ? {
-        id: character.location.api_id ? character.location.api_id.toString() : null,
-        name: character.location.name,
-        type: character.location.type,
-        dimension: character.location.dimension
+        id: character.location?.api_id?.toString() ?? null,
+        name: character.location?.name,
+        type: character.location?.type,
+        dimension: character.location?.dimension
       } : null,
       image: character.image,
-      created: character.created_at ? character.created_at.toISOString() : null
+      created: character.created_at?.toISOString() ?? null
     };
   }
 }
 
-// Instancia del resolver para usarla en los resolvers de Apollo
+// Instance of the resolver to use in Apollo resolvers
 const characterResolver = new CharacterResolver();
 
-// Definir resolvers para Apollo Server
+// Define resolvers for Apollo Server
 const resolvers = {
   Query: {
     character: (_: any, { id }: { id: string }) => 

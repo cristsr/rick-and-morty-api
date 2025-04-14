@@ -1,14 +1,13 @@
- 
 import dotenv from 'dotenv';
 import { initServer } from './app';
 
-// Cargar variables de entorno
+// Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
 
-// Iniciar el servidor
-(async () => {
+// Start the server
+const main = async  () => {
   try {
     const app = await initServer();
     
@@ -21,4 +20,6 @@ const PORT = process.env.PORT || 4000;
     console.error('Failed to start server:', error);
     process.exit(1);
   }
-})();
+}
+
+main();

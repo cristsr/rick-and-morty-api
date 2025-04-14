@@ -1,4 +1,3 @@
- 
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
 
@@ -13,7 +12,7 @@ const redisClient = new Redis({
   lazyConnect: true,
 });
 
-// Conectar a Redis y manejar errores
+// Connect to Redis and handle errors
 redisClient.on('error', (err) => {
   console.error('Redis connection error:', err);
 });
@@ -22,7 +21,7 @@ redisClient.on('connect', () => {
   console.log('Connected to Redis');
 });
 
-// Función para obtener datos de la caché
+// Function to get data from cache
 export const getCache = async (key: string): Promise<any | null> => {
   try {
     const cachedData = await redisClient.get(key);
@@ -36,7 +35,7 @@ export const getCache = async (key: string): Promise<any | null> => {
   }
 };
 
-// Función para guardar datos en la caché
+// Function to save data in the cache
 export const setCache = async (key: string, data: any, ttl = 3600): Promise<void> => {
   try {
     await redisClient.set(key, JSON.stringify(data), 'EX', ttl);
@@ -45,7 +44,7 @@ export const setCache = async (key: string, data: any, ttl = 3600): Promise<void
   }
 };
 
-// Función para eliminar datos de la caché
+// Function to delete data from the cache
 export const deleteCache = async (key: string): Promise<void> => {
   try {
     await redisClient.del(key);
@@ -54,7 +53,7 @@ export const deleteCache = async (key: string): Promise<void> => {
   }
 };
 
-// Función para limpiar la caché (útil para pruebas)
+// Function to clear the cache (useful for tests)
 export const flushCache = async (): Promise<void> => {
   try {
     await redisClient.flushall();

@@ -1,12 +1,11 @@
- 
 import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const API_URL = process.env.RICK_AND_MORTY_API_URL || 'https://rickandmortyapi.com/graphql';
+const API_URL = process.env.RICK_AND_MORTY_API_URL as string;
 
-// GraphQL query para obtener múltiples personajes
+// GraphQL query to get multiple characters
 const getCharactersQuery = `
   query getCharacters($page: Int, $filter: FilterCharacter) {
     characters(page: $page, filter: $filter) {
@@ -41,7 +40,7 @@ const getCharactersQuery = `
   }
 `;
 
-// GraphQL query para obtener un personaje por ID
+// GraphQL query to get a character by ID
 const getCharacterByIdQuery = `
   query getCharacter($id: ID!) {
     character(id: $id) {
@@ -69,7 +68,7 @@ const getCharacterByIdQuery = `
 `;
 
 /**
- * Obtiene varios personajes con filtros opcionales
+ * Gets multiple characters with optional filters
  */
 export const getCharacters = async (page = 1, filter: any = {}) => {
   try {
@@ -89,7 +88,7 @@ export const getCharacters = async (page = 1, filter: any = {}) => {
 };
 
 /**
- * Obtiene un personaje por su ID
+ * Gets a character by ID
  */
 export const getCharacterById = async (id: string) => {
   try {

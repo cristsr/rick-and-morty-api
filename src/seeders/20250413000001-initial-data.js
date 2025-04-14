@@ -1,7 +1,7 @@
 'use strict';
 const axios = require('axios');
 
-// Función para obtener personajes de la API de Rick y Morty
+// Function to get characters from Rick and Morty API
 async function fetchCharacters(limit = 15) {
   try {
     const API_URL = 'https://rickandmortyapi.com/graphql';
@@ -44,10 +44,10 @@ async function fetchCharacters(limit = 15) {
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     try {
-      // Obtener personajes de la API
+      // Get characters from API
       const characters = await fetchCharacters(15);
       
-      // Mapear y almacenar ubicaciones únicas (origin y location)
+      // Map and store unique locations (origin and location)
       const locationsMap = new Map();
       
       characters.forEach(character => {
@@ -72,31 +72,31 @@ module.exports = {
         }
       });
       
-      // Preparar datos de ubicaciones para insertar
+      // Prepare location data for insertion
       const locationsToInsert = Array.from(locationsMap.values()).map(location => ({
         ...location,
         created_at: new Date(),
         updated_at: new Date()
       }));
       
-      // Insertar ubicaciones
+      // Insert locations
       await queryInterface.bulkInsert('locations', locationsToInsert, {});
       
-      // Obtener las ubicaciones insertadas para hacer referencia en los personajes
+      // Get inserted locations to reference in characters
       const dbLocations = await queryInterface.sequelize.query(
         'SELECT id, name, api_id FROM locations',
         { type: queryInterface.sequelize.QueryTypes.SELECT }
       );
       
-      // Mapear ubicaciones por nombre para fácil referencia
+      // Map locations by name for easy reference
       const locationsByName = {};
       dbLocations.forEach(loc => {
         locationsByName[loc.name] = loc.id;
       });
       
-      // Preparar datos de personajes para insertar
+      // Prepare character data for insertion
       const charactersToInsert = characters.map(character => {
-        // Determinar referencias a ubicaciones
+        // Determine location references
         let originId = null;
         let locationId = null;
         
@@ -123,7 +123,7 @@ module.exports = {
         };
       });
       
-      // Insertar personajes
+      // Insert characters
       return await queryInterface.bulkInsert('characters', charactersToInsert, {});
     } catch (error) {
       console.error('Seeding error:', error);
@@ -132,9 +132,8 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Eliminar todos los registros
+    // Delete all records
     await queryInterface.bulkDelete('characters', null, {});
     await queryInterface.bulkDelete('locations', null, {});
   }
-
 }

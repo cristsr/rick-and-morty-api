@@ -1,4 +1,3 @@
- 
 import swaggerJSDoc from 'swagger-jsdoc';
 
 const options: swaggerJSDoc.Options = {
@@ -21,7 +20,7 @@ const options: swaggerJSDoc.Options = {
       },
     ],
   },
-  apis: ['./src/routes/*.ts', './src/models/*.ts'], // Rutas a los archivos con anotaciones JSDoc
+  apis: ['./src/routes/*.ts', './src/models/*.ts'], // Paths to files with JSDoc annotations
 };
 
 const swaggerSpec = swaggerJSDoc(options);

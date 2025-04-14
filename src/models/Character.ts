@@ -22,22 +22,22 @@ export interface CharacterInput extends Optional<CharacterAttributes, 'id'> {}
 export interface CharacterOutput extends Required<CharacterAttributes> {}
 
 class Character extends Model<CharacterAttributes, CharacterInput> implements CharacterAttributes {
-  public id!: number;
-  public name!: string;
-  public status!: string;
-  public species!: string;
-  public type!: string;
-  public gender!: string;
-  public image!: string;
-  public api_id!: number;
-  public origin_id?: number;
-  public location_id?: number;
-  public readonly created_at!: Date;
-  public readonly updated_at!: Date;
+  id!: number;
+  name!: string;
+  status!: string;
+  species!: string;
+  type!: string;
+  gender!: string;
+  image!: string;
+  api_id!: number;
+  origin_id?: number;
+  location_id?: number;
+  readonly created_at!: Date;
+  readonly updated_at!: Date;
 
   // Associations
-  public readonly origin?: Location;
-  public readonly location?: Location;
+  readonly origin?: Location;
+  readonly location?: Location;
 }
 
 Character.init(

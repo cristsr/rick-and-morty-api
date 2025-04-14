@@ -12,18 +12,18 @@ import swaggerSpec from './config/swagger';
 import sequelize from './db';
 import { initCharacterUpdateCron } from './services/cronJob';
 
-// Cargar variables de entorno
+// Load environment variables
 dotenv.config();
 
-// Crear aplicación Express
+// Create Express application
 const app: Application = express();
 
-// Configurar middlewares
+// Configure middlewares
 app.use(cors());
 app.use(json());
 app.use(requestLogger);
 
-// Configurar Apollo Server
+// Configure Apollo Server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -32,30 +32,30 @@ const server = new ApolloServer({
   debug: process.env.NODE_ENV !== 'production',
 });
 
-// Configurar Swagger
+// Configure Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Ruta de health check
+// Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 /**
- * Inicializa el servidor
+ * Initialize the server
  */
 export const initServer = async () => {
   try {
-    // Iniciar Apollo Server
+    // Start Apollo Server
     await server.start();
     
-    // Aplicar middleware de Apollo a Express
+    // Apply Apollo middleware to Express
     await server.applyMiddleware({ app: app as any });
     
-    // Probar conexión a la base de datos
+    // Test database connection
     await sequelize.authenticate();
     console.log('Database connection established successfully');
     
-    // Iniciar CRON job para actualizar personajes
+    // Start CRON job to update characters
     initCharacterUpdateCron();
     
     return app;

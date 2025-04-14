@@ -1,4 +1,3 @@
- 
 module.exports = {
     parser: '@typescript-eslint/parser',
     extends: [
@@ -9,7 +8,7 @@ module.exports = {
       sourceType: 'module',
     },
     rules: {
-      // Aquí puedes personalizar reglas específicas
+      // Here you can customize specific rules
       'semi': ['error', 'always'],
       'quotes': ['error', 'single'],
       '@typescript-eslint/explicit-function-return-type': 'off',

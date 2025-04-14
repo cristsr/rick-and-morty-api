@@ -1,6 +1,5 @@
- 
 /**
- * Decorador para medir el tiempo de ejecución de un método
+ * Decorator to measure the execution time of a method
  */
 export function measureExecutionTime() {
     return function (

@@ -1,8 +1,7 @@
- 
 import { Request, Response, NextFunction } from 'express';
 import winston from 'winston';
 
-// Configurar el logger
+// Configure the logger
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -19,16 +18,16 @@ const logger = winston.createLogger({
 });
 
 /**
- * Middleware para registrar información de las peticiones
+ * Middleware to log request information
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  // Captura el tiempo de inicio
+  // Capture start time
   const start = process.hrtime();
   
-  // Genera un ID único para la petición
+  // Generate a unique ID for the request
   const requestId = Math.random().toString(36).substring(2, 15);
   
-  // Información básica de la petición
+  // Basic request information
   const requestInfo = {
     id: requestId,
     method: req.method,
@@ -40,16 +39,16 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
     timestamp: new Date().toISOString()
   };
   
-  // Registra el inicio de la petición
+  // Log the request start
   logger.info(`Request started: ${req.method} ${req.originalUrl}`, requestInfo);
   
-  // Cuando la respuesta termine, registra la información final
+  // When the response finishes, log the final information
   res.on('finish', () => {
-    // Calcula el tiempo de respuesta
+    // Calculate response time
     const end = process.hrtime(start);
     const responseTime = (end[0] * 1000 + end[1] / 1000000).toFixed(2);
     
-    // Información de la respuesta
+    // Response information
     const responseInfo = {
       id: requestId,
       statusCode: res.statusCode,
@@ -57,7 +56,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       timestamp: new Date().toISOString()
     };
     
-    // Registra el fin de la petición
+    // Log the request end
     if (res.statusCode >= 400) {
       logger.error(`Request failed: ${req.method} ${req.originalUrl}`, {
         ...requestInfo,
