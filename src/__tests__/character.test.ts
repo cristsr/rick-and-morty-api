@@ -12,7 +12,7 @@ import {
   expectedResults
 } from './__mocks__/characterMocks';
 
-// Mock other modules antes del import de resolvers
+// Mock other modules before importing resolvers
 jest.mock('../models', () => ({
   Character: characterModelMock,
   Location: {},
@@ -28,7 +28,7 @@ jest.mock('../services/rickAndMortyApi', () => ({
   getCharacters: rickAndMortyApiMock.getCharacters,
 }));
 
-// Importar typeDefs y resolvers después de configurar los mocks
+// Import typeDefs and resolvers after setting up the mocks
 import typeDefs from '../graphql/schema';
 import resolvers from '../graphql/resolvers';
 
@@ -61,20 +61,20 @@ describe('Character GraphQL Queries', () => {
         variables: testVariables.characters,
       });
 
-      // Verificar que el resultado no tiene errores
+      // Verify that the result has no errors
       expect(result.errors).toBeUndefined();
       
-      // Verificar que la información de paginación coincide con la esperada
+      // Verify that the pagination information matches the expected
       expect(result.data?.characters.info).toEqual(expectedResults.charactersInfo);
       
-      // Verificar que devuelve la cantidad correcta de resultados
-      // mockDbCharacters tiene 2 elementos, así que esperamos 2 resultados
+      // Verify that it returns the correct number of results
+      // mockDbCharacters has 2 elements, so we expect 2 results
       expect(result.data?.characters.results).toHaveLength(mockDbCharacters.length);
       
-      // Verificar que el primer resultado coincide con el esperado
+      // Verify that the first result matches the expected
       expect(result.data?.characters.results[0]).toEqual(expectedResults.characterFromDB);
 
-      // Verificar que las funciones mock fueron llamadas
+      // Verify that mock functions were called
       expect(redisServiceMock.getCache).toHaveBeenCalled();
       expect(characterModelMock.count).toHaveBeenCalled();
       expect(characterModelMock.findAll).toHaveBeenCalled();
